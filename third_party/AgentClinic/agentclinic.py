@@ -183,7 +183,7 @@ class ScenarioMedQA:
 
 class ScenarioLoaderMedQA:
     def __init__(self) -> None:
-        with open("agentclinic_medqa.jsonl", "r") as f:
+        with open("agentclinic_medqa.jsonl", "r", encoding="utf-8") as f:
             self.scenario_strs = [json.loads(line) for line in f]
         self.scenarios = [ScenarioMedQA(_str) for _str in self.scenario_strs]
         self.num_scenarios = len(self.scenarios)

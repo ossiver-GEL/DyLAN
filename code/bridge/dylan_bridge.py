@@ -17,7 +17,7 @@ def _render_query_from_history(history: List[Tuple[str,str]]) -> str:
     lines.append("DOCTOR:")
     return "\n".join(lines)
 
-def dylan_answer_once(dylan_repo_root: Path, query: str, timeout_s: int = 180) -> str:
+def dylan_answer_once(dylan_repo_root: Path, query: str, timeout_s: int = 300) -> str:
     """
     Call run_DyLAN.py in 'service mode' (env DQUERY is set) and parse FINAL_ANSWER.
     """
