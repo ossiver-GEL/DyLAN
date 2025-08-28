@@ -4,36 +4,15 @@ import re
 import time
 import pandas as pd
 from prompt_lib import MMLU_QUESTION, COMPLEX_COT_EXAMPLES, TEMPERATURE, MAX_TOKENS
-import openai
+from openai import OpenAI
 import backoff
-from openai.error import RateLimitError, APIError, ServiceUnavailableError, APIConnectionError, Timeout
 
+# 初始化OpenAI客户端
+client = OpenAI(
+    base_url="https://api.bianxie.ai/v1",
+    api_key="sk-iYCHExjZNcFfBcf9EP2vdQFuWHagNroZrpVms8yjvXgucOLe"
+)
 
-class OutOfQuotaException(Exception):
-    "Raised when the key exceeded the current quota"
-    def __init__(self, key, cause=None):
-        super().__init__(f"No quota for key: {key}")
-        self.key = key
-        self.cause = cause
-
-    def __str__(self):
-        if self.cause:
-            return f"{super().__str__()}. Caused by {self.cause}"
-        else:
-            return super().__str__()
-
-class AccessTerminatedException(Exception):
-    "Raised when the key has been terminated"
-    def __init__(self, key, cause=None):
-        super().__init__(f"Access terminated key: {key}")
-        self.key = key
-        self.cause = cause
-
-    def __str__(self):
-        if self.cause:
-            return f"{super().__str__()}. Caused by {self.cause}"
-        else:
-            return super().__str__()
 
 def _fix_a_slash_b(string):
     if len(string.split("/")) != 2:
@@ -324,25 +303,28 @@ def extract_math_answer(pred_str):
         pred=a
     return pred
 
-@backoff.on_exception(backoff.expo, (RateLimitError, APIError, ServiceUnavailableError, APIConnectionError, Timeout), max_tries=20)
+@backoff.on_exception(backoff.expo, (Exception,), max_tries=20)
 def generate_answer(answer_context, model):
-    try:
-        completion = openai.ChatCompletion.create(
-                #   model=model,
-                  engine=model,
-                  messages=answer_context,
-                  temperature=TEMPERATURE,
-                  max_tokens=MAX_TOKENS,
-                  n=1)
-    except RateLimitError as e:
-        if "You exceeded your current quota, please check your plan and billing details" in e.user_message:
-            raise OutOfQuotaException(openai.api_key)
-        elif "Your access was terminated due to violation of our policies" in e.user_message:
-            raise AccessTerminatedException(openai.api_key)
-        else:
-            raise e
 
-    return completion["choices"][0]["message"]["content"], completion["usage"]["prompt_tokens"], completion["usage"]["completion_tokens"]
+    print("[DEBUG] answer_context: ", answer_context)
+
+    try:
+        completion = client.chat.completions.create(
+            model=model,
+            messages=answer_context,
+            temperature=TEMPERATURE,
+            max_tokens=MAX_TOKENS,
+            n=1
+        )
+    except Exception as e:
+        raise e
+
+    print("[DEBUG] completion: ", completion)
+
+    content = completion.choices[0].message.content
+    prompt_tokens = completion.usage.prompt_tokens if hasattr(completion, 'usage') and completion.usage else None
+    completion_tokens = completion.usage.completion_tokens if hasattr(completion, 'usage') and completion.usage else None
+    return content, prompt_tokens, completion_tokens
 
 def parse_single_choice(reply):
     pattern = r'\(([ABCDabcd])\)'
