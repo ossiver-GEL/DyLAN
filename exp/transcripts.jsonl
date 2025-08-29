@@ -1,0 +1,3 @@
+{"type": "turn", "time": "2025-08-28T17:26:26Z", "scenario_id": 4, "dataset": "MedQA", "event_id": 5, "role": "doctor", "text": "DIAGNOSIS READY: Drug-induced acute interstitial nephritis (amoxicillin-induced)", "char_len": 80, "system_hint": "doctor"}
+{"type": "turn", "time": "2025-08-28T17:26:28Z", "scenario_id": 4, "dataset": "MedQA", "event_id": 6, "role": "moderator", "text": "Yes", "char_len": 3, "system_hint": "moderator"}
+{"type": "final_verdict", "time": "2025-08-28T17:26:28Z", "scenario_id": 4, "dataset": "MedQA", "doctor_text": "DIAGNOSIS READY: Drug-induced acute interstitial nephritis (amoxicillin-induced)", "correct_diagnosis": "Acute interstitial nephritis", "verdict": "yes"}
